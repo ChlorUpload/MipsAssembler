@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Token">
+      <UniqueIdentifier>{b88f4cfc-e408-416b-a018-989d3695dd48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Token">
+      <UniqueIdentifier>{2833f413-4e69-4d44-bdbc-37dab8474f45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Parse">
+      <UniqueIdentifier>{666e6222-9946-4b28-9b7c-090158d5d62c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Parse">
+      <UniqueIdentifier>{5a485b7d-a0a7-4f57-920a-a13af5830f8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Parse\Elements">
+      <UniqueIdentifier>{6e6eae41-c6cf-4b2d-befc-22d072564f29}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MipsAssembler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenDefinitions.cc">
+      <Filter>Source Files\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="Tokenizer.cc">
+      <Filter>Source Files\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cc">
+      <Filter>Source Files\Parse</Filter>
+    </ClCompile>
+    <ClCompile Include="ElementDefinition.cc">
+      <Filter>Source Files\Parse</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Token.hh">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="Tokenizer.hh">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="NotImplementedException.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenDefinition.hh">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.hh">
+      <Filter>Header Files\Parse</Filter>
+    </ClInclude>
+    <ClInclude Include="Instruction.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="UnionElement.hh">
+      <Filter>Header Files\Parse</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenElement.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="ElementDefinition.hh">
+      <Filter>Header Files\Parse</Filter>
+    </ClInclude>
+    <ClInclude Include="Element.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MipsAssembler", "MipsAssembler\MipsAssembler.vcxproj", "{973B3A43-7983-4670-BA93-6BEBB617C4F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Debug|x64.ActiveCfg = Debug|x64
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Debug|x64.Build.0 = Debug|x64
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Debug|x86.ActiveCfg = Debug|Win32
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Debug|x86.Build.0 = Debug|Win32
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Release|x64.ActiveCfg = Release|x64
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Release|x64.Build.0 = Release|x64
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Release|x86.ActiveCfg = Release|Win32
+		{973B3A43-7983-4670-BA93-6BEBB617C4F9}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D1F1C5EE-D996-443E-9416-5A69F93B874D}
+	EndGlobalSection
+EndGlobal
