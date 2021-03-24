@@ -35,7 +35,6 @@ TokenDefinitionFactory::CreateTokenDefinition(std::vector<std::string> const& to
 
 Token TokenDefinitionFactory::RegisterTokenDefinition(std::string const& word)
 {
-    if (word == "zero") return Token::CreateToken(TokenType::REGISTER, "0");
     if (word.length() < 2 || word[0] != '$') return Token::CreateNullToken();
 
     std::string registerNum = word.substr(1);
