@@ -143,15 +143,20 @@
     <ClCompile Include="ElementDefinition.cc" />
     <ClCompile Include="MipsAssembler.cc" />
     <ClCompile Include="Parser.cc" />
+    <ClCompile Include="ReadableSerializer.cc" />
     <ClCompile Include="TokenDefinitions.cc" />
     <ClCompile Include="Tokenizer.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Address.hh" />
     <ClInclude Include="Element.hh" />
     <ClInclude Include="ElementDefinition.hh" />
     <ClInclude Include="Instruction.hh" />
+    <ClInclude Include="ISerializer.hh" />
     <ClInclude Include="NotImplementedException.hh" />
+    <ClInclude Include="OffsetAddress.hh" />
     <ClInclude Include="Parser.hh" />
+    <ClInclude Include="ReadableSerializer.hh" />
     <ClInclude Include="Token.hh" />
     <ClInclude Include="TokenDefinition.hh" />
     <ClInclude Include="TokenElement.hh" />

@@ -28,6 +28,12 @@
     <Filter Include="Header Files\Parse\Elements">
       <UniqueIdentifier>{6e6eae41-c6cf-4b2d-befc-22d072564f29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Serializer">
+      <UniqueIdentifier>{aea32bc7-c81f-49dc-a3f9-2803c5f89fbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Serializer">
+      <UniqueIdentifier>{8f6cf01f-9043-4833-9ddc-2f25e72b9815}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MipsAssembler.cc">
@@ -44,6 +50,9 @@
     </ClCompile>
     <ClCompile Include="ElementDefinition.cc">
       <Filter>Source Files\Parse</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadableSerializer.cc">
+      <Filter>Source Files\Serializer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +85,18 @@
     </ClInclude>
     <ClInclude Include="Element.hh">
       <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="OffsetAddress.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="Address.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializer.hh">
+      <Filter>Header Files\Serializer</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadableSerializer.hh">
+      <Filter>Header Files\Serializer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

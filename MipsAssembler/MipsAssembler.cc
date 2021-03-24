@@ -1,6 +1,7 @@
 #include "Element.hh"
 #include "ElementDefinition.hh"
 #include "Parser.hh"
+#include "ReadableSerializer.hh"
 #include "Token.hh"
 #include "Tokenizer.hh"
 #include <iostream>
@@ -37,7 +38,6 @@ std::vector<std::pair<TokenType, std::vector<std::string>>> tokenDefs = {
     { TokenType::BRAKET_LEFT, { "(" } },
     { TokenType::BRAKET_RIGHT, { ")" } },
 };
-
 std::vector<std::pair<TokenType, ElementType>> elemDefs = {
     { TokenType::CONST_DECI, ElementType::TOKEN_CONST },
     { TokenType::CONST_HEX, ElementType::TOKEN_CONST },
@@ -48,7 +48,6 @@ std::vector<std::pair<TokenType, ElementType>> elemDefs = {
     { TokenType::BRAKET_RIGHT, ElementType::TOKEN_BRAKET_RIGHT },
     { TokenType::COMMA, ElementType::TOKEN_COMMA },
 };
-
 std::vector<std::tuple<TokenType, InstructionId, InstructionFormat>> instDefs = {
     { TokenType::INST_ADDIU, InstructionId::INST_ADDIU, InstructionFormat::I_FORMAT },
     { TokenType::INST_ADDU, InstructionId::INST_ADDU, InstructionFormat::R_FORMAT },
@@ -78,9 +77,25 @@ int main()
 {
     std::string str = R"===(
        addu    $10,$9,  zero 
-       or    $4,  $3,  $2       
-       srl    $11,$6,  5         
+       or    $4,  $3,  $2  
+       srl    $11,$6,  5  
+       lw $9, 0($8)
+       addu $2, $0, $9
+       jal sum
+       j exit
+sum:    sltiu $1, $2, 1
+        bne $1, $0, sum_exit
+        addu $3, $3, $2
+        addiu $2, $2, -1
+        j sum
+sum_exit:
+        addu $4, $3, $0
+        jr $31
+exit:
+        addu $10, $9, zero       
 )===";
+
+#pragma region Tokenizer
 
     Tokenizer tokenizer = Tokenizer(str);
 
@@ -92,6 +107,11 @@ int main()
     tokenizer.AddTokenDefinition(TokenDefinitionFactory::RegisterTokenDefinition);
     tokenizer.AddTokenDefinition(TokenDefinitionFactory::LabelTokenDefinition);
     tokenizer.AddTokenDefinition(TokenDefinitionFactory::ConstantTokenDefinition);
+    tokenizer.AddTokenDefinition(TokenDefinitionFactory::LabelIdTokenDefinition);
+
+#pragma endregion
+
+#pragma region Parser
 
     Parser parser;
     // token element를 추가
@@ -115,14 +135,29 @@ int main()
                 std::get<InstructionId>(instDef), std::get<InstructionFormat>(instDef)));
     }
 
+    parser.AddElementDefinition(ElementType::OFFSET_ADDRESS,
+                                ElementDefinitionFactory::CreateOffsetAddressDefinition());
+    parser.AddElementDefinition(ElementType::ADDRESS,
+                                ElementDefinitionFactory::CreateAddressDefinition());
+
+#pragma endregion
+
+    ReadableSerializer serializer;
+
+    for (auto iter = tokenizer.begin(); iter != iter.end(); iter++)
+    { std::cout << "Type : " << (int)iter->type << "\tValue : " << iter->value << std::endl; }
+
     for (auto iter = tokenizer.begin(); iter != iter.end();)
     {
-        auto        instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
-        auto const& instruction       = std::get<UnionInstruction>(instructionOrNull.element);
-        auto const& instructionR      = std::get<InstructionR>(instruction.instruction);
-        std::cout << "id :" << (int)instruction.id << " | src1 :" << instructionR.registerSrc1
-                  << " | src2 :" << instructionR.registerSrc2
-                  << " | destOrValue :" << instructionR.destOrValue << std::endl;
+        auto instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
+        if (instructionOrNull.IsNull())
+        {
+            std::cout << "Instruction Parse Error" << std::endl;
+            iter++;
+            continue;
+        }
+        auto const& instruction = std::get<UnionInstruction>(instructionOrNull.element);
+        std::cout << serializer.Serialize(instruction) << std::endl;
     }
 
     return 0;
