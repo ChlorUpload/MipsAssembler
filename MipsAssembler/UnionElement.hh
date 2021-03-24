@@ -3,10 +3,12 @@
 #include "Element.hh"
 #include "Instruction.hh"
 #include "TokenElement.hh"
+#include "OffsetAddress.hh"
+#include "Address.hh"
 #include <variant>
 
 using UnionElementType
-    = std::variant<NullElement, UnionInstruction, TokenElement>;
+    = std::variant<NullElement, UnionInstruction, TokenElement, OffsetAddress, UnionAddress>;
 
 struct UnionElement
 {
