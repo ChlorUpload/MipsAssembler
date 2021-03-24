@@ -1,6 +1,8 @@
 #ifndef __H_INSTRUCTION__
 #define __H_INSTRUCTION__
+#include "Address.hh"
 #include "Element.hh"
+#include <optional>
 #include <variant>
 
 enum class InstructionId
@@ -54,26 +56,32 @@ struct InstructionI
 
 struct InstructionJ
 {
-    // Address       target;
+    UnionAddress target;
+    InstructionJ(UnionAddress target) : target { target } {}
 };
 
 using UnionInstructionType = std::variant<InstructionR, InstructionI, InstructionJ>;
 
 struct UnionInstruction : public Element
 {
-    InstructionId       id;
-    InstructionFormat   format;
-    virtual ElementType getType()
+    InstructionId              id;
+    InstructionFormat          format;
+    std::optional<std::string> label;
+    virtual ElementType        getType()
     {
         return ElementType::INSTRUCTION;
     }
 
     UnionInstructionType instruction;
-    UnionInstruction(InstructionId id, InstructionFormat format, UnionInstructionType type) :
+    UnionInstruction(InstructionId              id,
+                     InstructionFormat          format,
+                     UnionInstructionType       type,
+                     std::optional<std::string> label = std::nullopt) :
         Element { ElementType::INSTRUCTION },
         id { id },
         format { format },
-        instruction { type }
+        instruction { type },
+        label { label }
     {}
 };
 
