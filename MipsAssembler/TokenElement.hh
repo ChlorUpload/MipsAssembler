@@ -2,11 +2,6 @@
 #define __H_TOKEN_ELEMENT__
 #include "Token.hh"
 
-enum class TokenElementType
-{
-
-};
-
 struct TokenElement : public Element
 {
     Token token;
