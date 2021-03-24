@@ -13,6 +13,7 @@ enum class ElementType
     TOKEN_INST_ID,
 
     ADDRESS,
+    OFFSET_ADDRESS,
     INSTRUCTION,
 
     ELEMENT_NULL,
