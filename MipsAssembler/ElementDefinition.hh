@@ -27,8 +27,8 @@ class ElementDefinitionFactory
   public:
     static ElementDefinition CreateTokenElementDefinition(TokenType   tokenType,
                                                           ElementType elemType);
-    static ElementDefinition CreateInstructionDefinition(InstructionId     id,
-                                                         InstructionFormat format);
+    static ElementDefinition CreateInstructionDefinition(InstructionId id, InstructionType type);
+    static ElementDefinition CreateEmptyInstructionDefinition();
     static ElementDefinition CreateOffsetAddressDefinition();
     static ElementDefinition CreateAddressDefinition();
 };

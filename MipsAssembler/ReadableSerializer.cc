@@ -8,7 +8,7 @@ std::string InstructionIdToStr(InstructionId id)
 {
     static std::vector<std::string> instNames
         = { "ADDIU", "ADDU", "AND", "ANDI",  "BEQ",  "BNE", "J",   "JAL", "JR",   "LUI", "LW", "LA",
-            "NOR",   "OR",   "ORI", "SLTIU", "SLTU", "SLL", "SRL", "SW",  "SUBU", "LB",  "SB" };
+            "NOR",   "OR",   "ORI", "SLTIU", "SLTU", "SLL", "SRL", "SW",  "SUBU", "LB",  "SB", "NULL", "EMPTY"  };
 
     return instNames[(int)id];
 }
@@ -16,31 +16,91 @@ std::string InstructionIdToStr(InstructionId id)
 std::string ReadableSerializer::Serialize(UnionInstruction inst)
 {
     std::ostringstream ss;
+    ss << "================================================" << std::endl;
     ss << "Instruction ID : " << InstructionIdToStr(inst.id) << std::endl;
     ss << "Label : " << inst.label.value_or("No label") << std::endl;
 
-    switch (inst.format)
+    switch (inst.instType)
     {
-    case InstructionFormat::I_FORMAT:
+    case InstructionType::R_FORMAT:
+        ss << Serialize(std::get<InstructionR>(inst.instruction));
+        break;
+    case InstructionType::R_FORMAT_SHAMT:
+        ss << Serialize(std::get<InstructionRShamt>(inst.instruction));
+        break;
+    case InstructionType::R_FORMAT_JR:
+        ss << Serialize(std::get<InstructionRJr>(inst.instruction));
+        break;
+    case InstructionType::I_FORMAT:
         ss << Serialize(std::get<InstructionI>(inst.instruction));
         break;
-    case InstructionFormat::J_FORMAT:
+    case InstructionType::I_FORMAT_OFFSET:
+        ss << Serialize(std::get<InstructionIOffset>(inst.instruction));
+        break;
+    case InstructionType::I_FORMAT_BRANCH:
+        ss << Serialize(std::get<InstructionIBranch>(inst.instruction));
+        break;
+    case InstructionType::I_FORMAT_LUI:
+        ss << Serialize(std::get<InstructionILui>(inst.instruction));
+        break;
+    case InstructionType::J_FORMAT:
         ss << Serialize(std::get<InstructionJ>(inst.instruction));
         break;
-    case InstructionFormat::R_FORMAT:
-        ss << Serialize(std::get<InstructionR>(inst.instruction));
+    case InstructionType::EMPTY:
         break;
     }
 
     return ss.str();
 }
 
+std::string ReadableSerializer::Serialize(InstructionRShamt isntRshamt)
+{
+    std::ostringstream ss;
+    ss << "rd : " << isntRshamt.rd << "\t"
+       << "rt : " << isntRshamt.rt << "\t"
+       << "shamt : " << isntRshamt.shamt;
+    return ss.str();
+}
+std::string ReadableSerializer::Serialize(InstructionRJr isntRJr)
+{
+    std::ostringstream ss;
+    ss << "rs : " << isntRJr.rs;
+    return ss.str();
+}
+
 std::string ReadableSerializer::Serialize(InstructionI inst)
 {
     std::ostringstream ss;
-    ss << "regSrc : " << inst.registerSrc << "\t"
-       << "regDesc : " << inst.registerDest << "\t"
+    ss << "rt : " << inst.rt << "\t"
+       << "rs : " << inst.rs << "\t"
        << "immediate : " << inst.immediate;
+    return ss.str();
+}
+
+std::string ReadableSerializer::Serialize(InstructionIOffset instIOffset)
+{
+    std::ostringstream ss;
+    ss << "rt : " << instIOffset.rt << "\t"
+       << "rs : " << instIOffset.rs << "\t"
+       << "offset : " << instIOffset.offset;
+    return ss.str();
+}
+
+
+std::string ReadableSerializer::Serialize(InstructionIBranch instIBranch)
+{
+    std::ostringstream ss;
+    ss << "rt : " << instIBranch.rt << "\t"
+       << "rs : " << instIBranch.rs << "\t"
+       << "address : " << Serialize(instIBranch.branch);
+    return ss.str();
+}
+
+std::string ReadableSerializer::Serialize(InstructionILui instILui)
+{
+    std::ostringstream ss;
+    ss << "rt : " << instILui.rt << "\t"
+       << "immediate : " << instILui.immediate;
     return ss.str();
 }
 
@@ -54,9 +114,9 @@ std::string ReadableSerializer::Serialize(InstructionJ inst)
 std::string ReadableSerializer::Serialize(InstructionR inst)
 {
     std::ostringstream ss;
-    ss << "regSrc1 : " << inst.registerSrc1 << "\t"
-       << "regSrc2 : " << inst.registerSrc2 << "\t"
-       << "destOrValue : " << inst.destOrValue;
+    ss << "rd : " << inst.rd << "\t"
+       << "rs : " << inst.rs << "\t"
+       << "rt : " << inst.rt;
     return ss.str();
 }
 

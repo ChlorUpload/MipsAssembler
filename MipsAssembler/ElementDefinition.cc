@@ -23,8 +23,8 @@ ElementDefinition ElementDefinitionFactory::CreateTokenElementDefinition(TokenTy
     });
 }
 
-ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(InstructionId     id,
-                                                                        InstructionFormat format)
+ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(InstructionId   id,
+                                                                        InstructionType type)
 {
     return ElementDefinition([=](Tokenizer::TokenIterator& iter, Parser* parser) {
         Tokenizer::TokenIterator   copyIter(iter);
@@ -41,83 +41,164 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
             Token inst = std::get<TokenElement>(instOrNull.element).token;
             if (inst.IsInstruction() && _TokenTypeToInstructionId(inst) == id)
             {
-                switch (format)
+                switch (type)
                 {
-                case InstructionFormat::I_FORMAT:
+                case InstructionType::R_FORMAT:
+                {
+                    InstructionR       instR;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instR.rd = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instR.rs = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instR.rt = res.value();
+                    else
+                        break;
+
+                    elementType = UnionElementType(UnionInstruction(id, type, instR, label));
+                    iter        = copyIter;
+                    break;
+                }
+                case InstructionType::R_FORMAT_SHAMT:
+                {
+                    InstructionRShamt  instRShamt;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instRShamt.rd = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instRShamt.rt = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireConstant(parser, copyIter);
+                    if (res.has_value()) instRShamt.shamt = res.value();
+                    else
+                        break;
+
+                    elementType = UnionElementType(UnionInstruction(id, type, instRShamt, label));
+                    iter        = copyIter;
+                    break;
+                }
+                case InstructionType::R_FORMAT_JR:
+                {
+                    InstructionRJr     instRJr;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instRJr.rs = res.value();
+                    else
+                        break;
+
+                    elementType = UnionElementType(UnionInstruction(id, type, instRJr, label));
+                    iter        = copyIter;
+                    break;
+                }
+                case InstructionType::I_FORMAT:
                 {
                     InstructionI       instI;
                     std::optional<int> res = _RequireRegister(parser, copyIter);
-                    if (res.has_value()) { instI.registerSrc = res.value(); }
+                    if (res.has_value()) instI.rt = res.value();
                     else
                         break;
-                    auto offsetAddressOrNull
-                        = parser->GetNextElement(ElementType::OFFSET_ADDRESS, copyIter);
-                    if (!offsetAddressOrNull.IsNull())
-                    {
-                        // offsetAddress가 등장한 경우
-                        auto const& oa     = std::get<OffsetAddress>(offsetAddressOrNull.element);
-                        instI.registerDest = oa.numRegister;
-                        instI.immediate    = oa.offset;
-                    }
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instI.rs = res.value();
                     else
-                    {
-                        std::optional<int> res = _RequireRegister(parser, copyIter);
-                        if (res.has_value()) { instI.registerDest = res.value(); }
-                        else
-                            break;
-                        res = _RequireConstant(parser, copyIter);
-                        if (res.has_value()) { instI.immediate = res.value(); }
-                        else
-                            break;
-                    }
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireConstant(parser, copyIter);
+                    if (res.has_value()) instI.immediate = res.value();
+                    else
+                        break;
 
-                    auto instruction = UnionInstruction(id, format, instI, label);
-                    elementType      = instruction;
-                    iter             = copyIter;
+                    elementType = UnionInstruction(id, type, instI, label);
+                    iter        = copyIter;
                     break;
                 }
-                case InstructionFormat::J_FORMAT:
+                case InstructionType::I_FORMAT_OFFSET:
+                {
+                    InstructionIOffset instIOffset;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instIOffset.rt = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    auto offsetAddressOrNull
+                        = parser->GetNextElement(ElementType::OFFSET_ADDRESS, copyIter);
+                    if (offsetAddressOrNull.IsNull()) break;
+                    auto const& offsetAddress
+                        = std::get<OffsetAddress>(offsetAddressOrNull.element);
+                    instIOffset.rs     = offsetAddress.numRegister;
+                    instIOffset.offset = offsetAddress.offset;
+
+                    elementType = UnionInstruction(id, type, instIOffset, label);
+                    iter        = copyIter;
+                    break;
+                }
+                case InstructionType::I_FORMAT_BRANCH:
+                {
+                    int                rt, rs;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) rt = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) rs = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    auto addressOrNull = parser->GetNextElement(ElementType::ADDRESS, copyIter);
+                    if (addressOrNull.IsNull()) break;
+                    auto const& address = std::get<UnionAddress>(addressOrNull.element);
+
+                    elementType
+                        = UnionInstruction(id, type, InstructionIBranch(rt, rs, address), label);
+                    iter = copyIter;
+                    break;
+                }
+                case InstructionType::I_FORMAT_LUI:
+                {
+                    InstructionILui    instILui;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) instILui.rt = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    res = _RequireConstant(parser, copyIter);
+                    if (res.has_value()) instILui.immediate = res.value();
+                    else
+                        break;
+
+                    elementType = UnionInstruction(id, type, instILui, label);
+                    iter        = copyIter;
+                    break;
+                }
+                case InstructionType::J_FORMAT:
                 {
                     auto addressOrNull = parser->GetNextElement(ElementType::ADDRESS, copyIter);
                     if (addressOrNull.IsNull()) break;
-                    auto address     = std::get<UnionAddress>(addressOrNull.element);
-                    auto instruction = UnionInstruction(id, format, InstructionJ(address), label);
-                    elementType      = instruction;
-                    iter             = copyIter;
-                    break;
-                }
-                case InstructionFormat::R_FORMAT:
-                {
+                    auto address = std::get<UnionAddress>(addressOrNull.element);
 
-                    InstructionR       instR;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
-                    if (res.has_value()) { instR.registerSrc1 = res.value(); }
-                    else
-                        break;
-                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) { break; }
-                    res = _RequireRegister(parser, copyIter);
-                    if (res.has_value()) { instR.registerSrc2 = res.value(); }
-                    else
-                        break;
-                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) { break; }
-                    res = _RequireRegister(parser, copyIter);
-                    if (res.has_value()) { instR.destOrValue = res.value(); }
-                    else
-                    {
-                        res = _RequireConstant(parser, copyIter);
-                        if (res.has_value()) { instR.destOrValue = res.value(); }
-                        else
-                            break;
-                    }
-                    auto instruction = UnionInstruction(id, format, instR, label);
-                    elementType      = instruction;
-                    iter             = copyIter;
+                    elementType = UnionInstruction(id, type, InstructionJ(address), label);
+                    iter        = copyIter;
                     break;
                 }
                 }
             }
         }
-
+        else
+        {
+            elementType = UnionInstruction(
+                InstructionId::INST_EMPTY, InstructionType::EMPTY, InstructionEmpty(), label);
+            iter = copyIter;
+        }
         return UnionElement(elementType);
     });
 }
@@ -138,7 +219,7 @@ ElementDefinition ElementDefinitionFactory::CreateOffsetAddressDefinition()
         if (res.has_value()) { numRegister = res.value(); }
         else
             goto end;
-        if (_Require(ElementType::TOKEN_BRAKET_RIGHT, parser, copyIter)) goto end;
+        if (!_Require(ElementType::TOKEN_BRAKET_RIGHT, parser, copyIter)) goto end;
 
         element = OffsetAddress(numRegister, offset);
         iter    = copyIter;

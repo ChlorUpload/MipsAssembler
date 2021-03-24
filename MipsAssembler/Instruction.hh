@@ -31,26 +31,73 @@ enum class InstructionId
     INST_LB,
     INST_SB,
     INST_NULL,
+    INST_EMPTY,
 };
 
-enum class InstructionFormat
+enum class InstructionType
 {
     R_FORMAT,
-    J_FORMAT,
+    R_FORMAT_SHAMT,
+    R_FORMAT_JR,
+
     I_FORMAT,
+    I_FORMAT_OFFSET,
+    I_FORMAT_BRANCH,
+    I_FORMAT_LUI,
+
+    J_FORMAT,
+
+    EMPTY,
 };
 
 struct InstructionR
 {
-    int registerSrc1;
-    int registerSrc2;
-    int destOrValue;
+    int rd;
+    int rs;
+    int rt;
+};
+
+struct InstructionRShamt
+{
+    int rd;
+    int rt;
+    int shamt;
+};
+
+struct InstructionRJr
+{
+    int rs;
 };
 
 struct InstructionI
 {
-    int registerSrc;
-    int registerDest;
+    int rt;
+    int rs;
+    int immediate;
+};
+
+struct InstructionIOffset
+{
+    int rt;
+    int rs;
+    int offset;
+};
+
+struct InstructionIBranch
+{
+    int          rt;
+    int          rs;
+    UnionAddress branch;
+    InstructionIBranch(int rt, int rs, UnionAddress branch) :
+        rt { rt },
+        rs { rs },
+        branch { branch }
+    {}
+};
+
+struct InstructionILui
+{
+    int rt;
     int immediate;
 };
 
@@ -60,12 +107,23 @@ struct InstructionJ
     InstructionJ(UnionAddress target) : target { target } {}
 };
 
-using UnionInstructionType = std::variant<InstructionR, InstructionI, InstructionJ>;
+struct InstructionEmpty
+{};
+
+using UnionInstructionType = std::variant<InstructionR,
+                                          InstructionRShamt,
+                                          InstructionRJr,
+                                          InstructionI,
+                                          InstructionIOffset,
+                                          InstructionIBranch,
+                                          InstructionILui,
+                                          InstructionJ,
+                                          InstructionEmpty>;
 
 struct UnionInstruction : public Element
 {
     InstructionId              id;
-    InstructionFormat          format;
+    InstructionType            instType;
     std::optional<std::string> label;
     virtual ElementType        getType()
     {
@@ -74,13 +132,13 @@ struct UnionInstruction : public Element
 
     UnionInstructionType instruction;
     UnionInstruction(InstructionId              id,
-                     InstructionFormat          format,
-                     UnionInstructionType       type,
+                     InstructionType            instType,
+                     UnionInstructionType       instruction,
                      std::optional<std::string> label = std::nullopt) :
         Element { ElementType::INSTRUCTION },
         id { id },
-        format { format },
-        instruction { type },
+        instType { instType },
+        instruction { instruction },
         label { label }
     {}
 };
