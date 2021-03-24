@@ -20,14 +20,17 @@ class ElementDefinitionFactory
   private:
     static InstructionId _TokenTypeToInstructionId(Token token);
     static bool          _Require(ElementType type, Parser* parser, Tokenizer::TokenIterator& iter);
-    static int           _Atoi(std::string str);
+    static std::optional<int> _RequireConstant(Parser* parser, Tokenizer::TokenIterator& iter);
+    static std::optional<int> _RequireRegister(Parser* parser, Tokenizer::TokenIterator& iter);
+    static int                _Atoi(std::string str);
 
   public:
     static ElementDefinition CreateTokenElementDefinition(TokenType   tokenType,
                                                           ElementType elemType);
-
     static ElementDefinition CreateInstructionDefinition(InstructionId     id,
                                                          InstructionFormat format);
+    static ElementDefinition CreateOffsetAddressDefinition();
+    static ElementDefinition CreateAddressDefinition();
 };
 
 #endif
