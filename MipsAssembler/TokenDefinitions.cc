@@ -57,8 +57,10 @@ Token TokenDefinitionFactory::RegisterTokenDefinition(std::string const& word)
 Token TokenDefinitionFactory::LabelTokenDefinition(std::string const& word)
 {
     if (!word.empty() && word.back() == ':')
-        return Token::CreateToken(TokenType::LABEL, word.substr(0, word.length() - 1));
-
+    {
+        std::string labelId = word.substr(0, word.length() - 1);
+        if (_IsValidId(labelId)) return Token::CreateToken(TokenType::LABEL, labelId);
+    }
     return Token::CreateNullToken();
 }
 
