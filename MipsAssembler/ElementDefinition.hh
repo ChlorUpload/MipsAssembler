@@ -29,7 +29,7 @@ class ElementDefinitionFactory
                                                           ElementType elemType);
     static ElementDefinition CreateInstructionDefinition(InstructionId id, InstructionType type);
     static ElementDefinition CreateOffsetAddressDefinition();
-    static ElementDefinition CreateAddressDefinition();
+    static ElementDefinition CreateLabelAddressDefinition();
     static ElementDefinition CreateDataDefinition();
 };
 
