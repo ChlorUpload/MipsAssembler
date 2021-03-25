@@ -105,7 +105,7 @@ sum:    sltiu $1, $2, 1
         bne $1, $0, sum_exit
         bne $1, 3($1)
         addu $3, $3, $2
-        la $2, 0x12345678
+        la $2, array
         addiu $2, $2, -1
         j sum
 sum_exit:
@@ -162,7 +162,7 @@ empty_inst_label2:
     parser.AddElementDefinition(ElementType::OFFSET_ADDRESS,
                                 ElementDefinitionFactory::CreateOffsetAddressDefinition());
     parser.AddElementDefinition(ElementType::ADDRESS,
-                                ElementDefinitionFactory::CreateAddressDefinition());
+                                ElementDefinitionFactory::CreateLabelAddressDefinition());
     parser.AddElementDefinition(ElementType::DATA,
                                 ElementDefinitionFactory::CreateDataDefinition());
 
@@ -188,12 +188,7 @@ empty_inst_label2:
     while (iter != iter.end())
     {
         auto instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
-        if (instructionOrNull.IsNull())
-        {
-            std::cout << "Instruction Parse Error" << std::endl;
-            iter++;
-            continue;
-        }
+        if (instructionOrNull.IsNull()) { throw NotImplementedException(); }
         auto const& instruction = std::get<UnionInstruction>(instructionOrNull.element);
         instructions.push_back(instruction);
     }
@@ -207,7 +202,100 @@ empty_inst_label2:
     }
 
     // 의미 분석
-    std::unordered_map<std::string, int> labelMap;
+    std::unordered_map<std::string, unsigned int> dataLabelMap, textLabelMap;
+    unsigned int                                  address = 0x10000000;
+    for (auto const& data : dataList)
+    {
+        if (data.label.has_value())
+            dataLabelMap.insert(std::make_pair(data.label.value(), address));
+        address += 4;
+    }
+    address = 0x00400000;
+    for (auto const& inst : instructions)
+    {
+        if (inst.label.has_value())
+            textLabelMap.insert(std::make_pair(inst.label.value(), address));
+        if (inst.id != InstructionId::INST_EMPTY) address += 4;
+        if (inst.id == InstructionId::INST_LA)
+        {
+            auto const& la      = std::get<InstructionILa>(inst.instruction);
+            auto const& labelId = std::get<LabelAddress>(la.address.element).labelId;
+            auto        iter    = dataLabelMap.find(labelId);
+            if (iter == dataLabelMap.end()) throw NotImplementedException();
+
+            if ((iter->second & 0xFFFF) != 0) { address += 4; }
+        }
+    }
+    std::vector<UnionInstruction> newInstructions;
+    for (auto const& inst : instructions)
+    {
+        UnionInstruction newInst = UnionInstruction(inst);
+        switch (inst.instType)
+        {
+        case InstructionType::I_FORMAT_ADDRESS:
+        {
+            auto instAddress = std::get<InstructionIAddress>(inst.instruction);
+            auto labelId     = std::get<LabelAddress>(instAddress.address.element).labelId;
+            auto iter        = dataLabelMap.find(labelId);
+            if (iter == dataLabelMap.end())
+            {
+                iter = textLabelMap.find(labelId);
+                if (iter == textLabelMap.end()) throw NotImplementedException();
+            }
+            ConstantAddress ca;
+            ca.address          = iter->second;
+            instAddress.address = UnionAddress(ca);
+            newInst             = UnionInstruction(
+                inst.id, inst.instType, InstructionIAddress(instAddress), inst.label);
+            newInstructions.push_back(newInst);
+            break;
+        }
+        case InstructionType::I_FORMAT_LA:
+        {
+            auto instLa  = std::get<InstructionILa>(inst.instruction);
+            auto labelId = std::get<LabelAddress>(instLa.address.element).labelId;
+            auto iter    = dataLabelMap.find(labelId);
+            if (iter == dataLabelMap.end()) throw NotImplementedException();
+            unsigned int    addressHi = (iter->second >> 16);
+            InstructionILui instILui;
+            instILui.rt        = instLa.rt;
+            instILui.immediate = addressHi;
+            newInstructions.push_back(UnionInstruction(
+                InstructionId::INST_LUI, InstructionType::I_FORMAT_LUI, instILui, inst.label));
+            if ((iter->second & 0xFFFF) != 0)
+            {
+                InstructionI instIOri;
+                instIOri.rt = instIOri.rs = instLa.rt;
+                instIOri.immediate        = iter->second & 0xFFFF;
+                newInstructions.push_back(
+                    UnionInstruction(InstructionId::INST_ORI, InstructionType::I_FORMAT, instIOri));
+            }
+            break;
+        }
+        case InstructionType::J_FORMAT:
+        {
+            auto instJ   = std::get<InstructionJ>(inst.instruction);
+            auto labelId = std::get<LabelAddress>(instJ.target.element).labelId;
+            auto iter    = textLabelMap.find(labelId);
+            if (iter == textLabelMap.end()) throw NotImplementedException();
+            ConstantAddress ca;
+            ca.address   = iter->second;
+            instJ.target = UnionAddress(ca);
+            newInstructions.push_back(UnionInstruction(inst.id, inst.instType, instJ, inst.label));
+            break;
+        }
+        default: newInstructions.push_back(newInst); break;
+        }
+    }
+
+    std::cout << std::endl << "주소 분석 및 의미 추론 완료" << std::endl;
+
+    // 사람이 읽을 수 있는 형태로 의미 분석 결과 표시
+    for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
+    for (auto& newInst : newInstructions)
+    {
+        std::cout << serializer.Serialize(newInst) << std::endl;
+    }
 
     // 기계어 생성
     CodeGenerator codegen;
