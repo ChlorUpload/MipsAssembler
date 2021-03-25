@@ -42,8 +42,9 @@ enum class InstructionType
 
     I_FORMAT,
     I_FORMAT_OFFSET,
-    I_FORMAT_BRANCH,
+    I_FORMAT_ADDRESS,
     I_FORMAT_LUI,
+    I_FORMAT_LA,
 
     J_FORMAT,
 
@@ -83,15 +84,15 @@ struct InstructionIOffset
     int offset;
 };
 
-struct InstructionIBranch
+struct InstructionIAddress
 {
     int          rt;
     int          rs;
-    UnionAddress branch;
-    InstructionIBranch(int rt, int rs, UnionAddress branch) :
+    UnionAddress address;
+    InstructionIAddress(int rt, int rs, UnionAddress address) :
         rt { rt },
         rs { rs },
-        branch { branch }
+        address { address }
     {}
 };
 
@@ -99,6 +100,13 @@ struct InstructionILui
 {
     int rt;
     int immediate;
+};
+
+struct InstructionILa
+{
+    int          rt;
+    UnionAddress address;
+    InstructionILa(int rt, UnionAddress const& address) : rt { rt }, address { address } {}
 };
 
 struct InstructionJ
@@ -115,8 +123,9 @@ using UnionInstructionType = std::variant<InstructionR,
                                           InstructionRJr,
                                           InstructionI,
                                           InstructionIOffset,
-                                          InstructionIBranch,
+                                          InstructionIAddress,
                                           InstructionILui,
+                                          InstructionILa,
                                           InstructionJ,
                                           InstructionEmpty>;
 
