@@ -136,7 +136,7 @@ std::string ReadableSerializer::Serialize(UnionAddress address)
     switch (address.element.index())
     {
     case 0: // ConstantAddress
-        ss << std::hex << std::get<ConstantAddress>(address.element).address;
+        ss << "0x" << std::hex << std::get<ConstantAddress>(address.element).address;
         break;
     case 1: // LabelAddress
         ss << "LabelId : " << std::get<LabelAddress>(address.element).labelId;
