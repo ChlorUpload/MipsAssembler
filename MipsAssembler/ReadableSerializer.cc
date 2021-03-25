@@ -7,8 +7,9 @@
 std::string InstructionIdToStr(InstructionId id)
 {
     static std::vector<std::string> instNames
-        = { "ADDIU", "ADDU", "AND", "ANDI",  "BEQ",  "BNE", "J",   "JAL", "JR",   "LUI", "LW", "LA",
-            "NOR",   "OR",   "ORI", "SLTIU", "SLTU", "SLL", "SRL", "SW",  "SUBU", "LB",  "SB", "NULL", "EMPTY"  };
+        = { "ADDIU", "ADDU", "AND",  "ANDI", "BEQ", "BNE",  "J",     "JAL",  "JR",
+            "LUI",   "LW",   "LA",   "NOR",  "OR",  "ORI",  "SLTIU", "SLTU", "SLL",
+            "SRL",   "SW",   "SUBU", "LB",   "SB",  "NULL", "EMPTY" };
 
     return instNames[(int)id];
 }
@@ -37,17 +38,19 @@ std::string ReadableSerializer::Serialize(UnionInstruction inst)
     case InstructionType::I_FORMAT_OFFSET:
         ss << Serialize(std::get<InstructionIOffset>(inst.instruction));
         break;
-    case InstructionType::I_FORMAT_BRANCH:
-        ss << Serialize(std::get<InstructionIBranch>(inst.instruction));
+    case InstructionType::I_FORMAT_ADDRESS:
+        ss << Serialize(std::get<InstructionIAddress>(inst.instruction));
         break;
     case InstructionType::I_FORMAT_LUI:
         ss << Serialize(std::get<InstructionILui>(inst.instruction));
         break;
+    case InstructionType::I_FORMAT_LA:
+        ss << Serialize(std::get<InstructionILa>(inst.instruction));
+        break;
     case InstructionType::J_FORMAT:
         ss << Serialize(std::get<InstructionJ>(inst.instruction));
         break;
-    case InstructionType::EMPTY:
-        break;
+    case InstructionType::EMPTY: break;
     }
 
     return ss.str();
@@ -86,13 +89,12 @@ std::string ReadableSerializer::Serialize(InstructionIOffset instIOffset)
     return ss.str();
 }
 
-
-std::string ReadableSerializer::Serialize(InstructionIBranch instIBranch)
+std::string ReadableSerializer::Serialize(InstructionIAddress instIAddress)
 {
     std::ostringstream ss;
-    ss << "rt : " << instIBranch.rt << "\t"
-       << "rs : " << instIBranch.rs << "\t"
-       << "address : " << Serialize(instIBranch.branch);
+    ss << "rt : " << instIAddress.rt << "\t"
+       << "rs : " << instIAddress.rs << "\t"
+       << "address : " << Serialize(instIAddress.address);
     return ss.str();
 }
 
@@ -101,6 +103,14 @@ std::string ReadableSerializer::Serialize(InstructionILui instILui)
     std::ostringstream ss;
     ss << "rt : " << instILui.rt << "\t"
        << "immediate : " << instILui.immediate;
+    return ss.str();
+}
+
+std::string ReadableSerializer::Serialize(InstructionILa instILa)
+{
+    std::ostringstream ss;
+    ss << "rt : " << instILa.rt << "\t"
+       << "address : " << Serialize(instILa.address);
     return ss.str();
 }
 
@@ -133,5 +143,14 @@ std::string ReadableSerializer::Serialize(UnionAddress address)
         break;
     default: throw NotImplementedException();
     }
+    return ss.str();
+}
+
+std::string ReadableSerializer::Serialize(Data data)
+{
+    std::ostringstream ss;
+    ss << "================================================" << std::endl;
+    ss << "Label : " << data.label.value_or("No label") << std::endl;
+    ss << "Value : " << data.value;
     return ss.str();
 }
