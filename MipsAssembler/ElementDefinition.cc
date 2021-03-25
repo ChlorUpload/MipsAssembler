@@ -33,7 +33,9 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
 
         auto labelOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL, copyIter);
         if (!labelOrNull.IsNull())
-        { label = std::get<TokenElement>(labelOrNull.element).token.value; }
+        {
+            label = std::get<TokenElement>(labelOrNull.element).token.value;
+        }
 
         auto instOrNull = parser->GetNextElement(ElementType::TOKEN_INST_ID, copyIter);
         if (!instOrNull.IsNull())
@@ -141,7 +143,7 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                     iter        = copyIter;
                     break;
                 }
-                case InstructionType::I_FORMAT_BRANCH:
+                case InstructionType::I_FORMAT_ADDRESS:
                 {
                     int                rt, rs;
                     std::optional<int> res = _RequireRegister(parser, copyIter);
@@ -159,7 +161,7 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                     auto const& address = std::get<UnionAddress>(addressOrNull.element);
 
                     elementType
-                        = UnionInstruction(id, type, InstructionIBranch(rt, rs, address), label);
+                        = UnionInstruction(id, type, InstructionIAddress(rt, rs, address), label);
                     iter = copyIter;
                     break;
                 }
@@ -180,6 +182,22 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                     iter        = copyIter;
                     break;
                 }
+                case InstructionType::I_FORMAT_LA:
+                {
+                    int                rt;
+                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    if (res.has_value()) rt = res.value();
+                    else
+                        break;
+                    if (!_Require(ElementType::TOKEN_COMMA, parser, copyIter)) break;
+                    auto addressOrNull = parser->GetNextElement(ElementType::ADDRESS, copyIter);
+                    if (addressOrNull.IsNull()) break;
+                    auto const& address = std::get<UnionAddress>(addressOrNull.element);
+
+                    elementType = UnionInstruction(id, type, InstructionILa(rt, address), label);
+                    iter        = copyIter;
+                    break;
+                }
                 case InstructionType::J_FORMAT:
                 {
                     auto addressOrNull = parser->GetNextElement(ElementType::ADDRESS, copyIter);
@@ -193,7 +211,7 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
             }
         }
-        else
+        else if (label.has_value())
         {
             elementType = UnionInstruction(
                 InstructionId::INST_EMPTY, InstructionType::EMPTY, InstructionEmpty(), label);
@@ -259,6 +277,32 @@ ElementDefinition ElementDefinitionFactory::CreateAddressDefinition()
     });
 }
 
+ElementDefinition ElementDefinitionFactory::CreateDataDefinition()
+{
+    return ElementDefinition([](Tokenizer::TokenIterator& iter, Parser* parser) {
+        Tokenizer::TokenIterator   copyIter(iter);
+        UnionElementType           element = NullElement();
+        std::optional<std::string> label   = std::nullopt;
+
+        auto labelOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL, copyIter);
+        if (!labelOrNull.IsNull())
+        {
+            label = std::get<TokenElement>(labelOrNull.element).token.value;
+        }
+
+        if (_Require(ElementType::TOKEN_DIRE_WORD, parser, copyIter))
+        {
+            std::optional<int> res = _RequireConstant(parser, copyIter);
+            if (res.has_value())
+            {
+                element = Data(res.value(), label);
+                iter    = copyIter;
+            }
+        }
+        return UnionElement(element);
+    });
+}
+
 /* private methods */
 
 InstructionId ElementDefinitionFactory::_TokenTypeToInstructionId(Token token)
@@ -297,7 +341,9 @@ std::optional<int> ElementDefinitionFactory::_RequireConstant(Parser*           
 {
     auto constantOrNull = parser->GetNextElement(ElementType::TOKEN_CONST, iter);
     if (!constantOrNull.IsNull())
-    { return _Atoi(std::get<TokenElement>(constantOrNull.element).token.value); }
+    {
+        return _Atoi(std::get<TokenElement>(constantOrNull.element).token.value);
+    }
     else
     {
         return std::nullopt;
@@ -309,7 +355,9 @@ std::optional<int> ElementDefinitionFactory::_RequireRegister(Parser*           
 {
     auto registerOrNull = parser->GetNextElement(ElementType::TOKEN_REGISTER, iter);
     if (!registerOrNull.IsNull())
-    { return _Atoi(std::get<TokenElement>(registerOrNull.element).token.value); }
+    {
+        return _Atoi(std::get<TokenElement>(registerOrNull.element).token.value);
+    }
     else
     {
         return std::nullopt;
