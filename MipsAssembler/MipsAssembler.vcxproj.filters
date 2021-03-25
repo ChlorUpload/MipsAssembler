@@ -34,6 +34,9 @@
     <Filter Include="Source Files\Serializer">
       <UniqueIdentifier>{8f6cf01f-9043-4833-9ddc-2f25e72b9815}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SemanticAnalyzer">
+      <UniqueIdentifier>{303d2f69-7d60-45f0-8522-cd5b05e61987}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MipsAssembler.cc">
@@ -86,9 +89,6 @@
     <ClInclude Include="Element.hh">
       <Filter>Header Files\Parse\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="OffsetAddress.hh">
-      <Filter>Header Files\Parse\Elements</Filter>
-    </ClInclude>
     <ClInclude Include="Address.hh">
       <Filter>Header Files\Parse\Elements</Filter>
     </ClInclude>
@@ -97,6 +97,12 @@
     </ClInclude>
     <ClInclude Include="ReadableSerializer.hh">
       <Filter>Header Files\Serializer</Filter>
+    </ClInclude>
+    <ClInclude Include="SemanticAnalyzer.hh">
+      <Filter>Header Files\SemanticAnalyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Data.hh">
+      <Filter>Header Files\Parse\Elements</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

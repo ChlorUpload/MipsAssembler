@@ -1,5 +1,6 @@
 #include "Element.hh"
 #include "ElementDefinition.hh"
+#include "NotImplementedException.hh"
 #include "Parser.hh"
 #include "ReadableSerializer.hh"
 #include "Token.hh"
@@ -38,44 +39,59 @@ std::vector<std::pair<TokenType, std::vector<std::string>>> tokenDefs = {
     { TokenType::BRAKET_LEFT, { "(" } },
     { TokenType::BRAKET_RIGHT, { ")" } },
 };
-std::vector<std::pair<TokenType, ElementType>> elemDefs = {
-    { TokenType::CONST_DECI, ElementType::TOKEN_CONST },
-    { TokenType::CONST_HEX, ElementType::TOKEN_CONST },
-    { TokenType::REGISTER, ElementType::TOKEN_REGISTER },
-    { TokenType::LABEL, ElementType::TOKEN_LABEL },
-    { TokenType::LABEL_ID, ElementType::TOKEN_LABEL_ID },
-    { TokenType::BRAKET_LEFT, ElementType::TOKEN_BRAKET_LEFT },
-    { TokenType::BRAKET_RIGHT, ElementType::TOKEN_BRAKET_RIGHT },
-    { TokenType::COMMA, ElementType::TOKEN_COMMA },
-};
-std::vector<std::tuple<TokenType, InstructionId, InstructionType>> instDefs = {
-    { TokenType::INST_ADDIU, InstructionId::INST_ADDIU, InstructionType::I_FORMAT },
-    { TokenType::INST_ADDU, InstructionId::INST_ADDU, InstructionType::R_FORMAT },
-    { TokenType::INST_AND, InstructionId::INST_AND, InstructionType::R_FORMAT },
-    { TokenType::INST_ANDI, InstructionId::INST_ANDI, InstructionType::I_FORMAT },
-    { TokenType::INST_BEQ, InstructionId::INST_BEQ, InstructionType::I_FORMAT_BRANCH },
-    { TokenType::INST_BNE, InstructionId::INST_BNE, InstructionType::I_FORMAT_BRANCH },
-    { TokenType::INST_J, InstructionId::INST_J, InstructionType::J_FORMAT },
-    { TokenType::INST_JAL, InstructionId::INST_JAL, InstructionType::J_FORMAT },
-    { TokenType::INST_JR, InstructionId::INST_JR, InstructionType::R_FORMAT_JR },
-    { TokenType::INST_LUI, InstructionId::INST_LUI, InstructionType::I_FORMAT_LUI },
-    { TokenType::INST_LW, InstructionId::INST_LW, InstructionType::I_FORMAT_OFFSET },
-    { TokenType::INST_LB, InstructionId::INST_LB, InstructionType::I_FORMAT_OFFSET },
-    { TokenType::INST_NOR, InstructionId::INST_NOR, InstructionType::R_FORMAT },
-    { TokenType::INST_OR, InstructionId::INST_OR, InstructionType::R_FORMAT },
-    { TokenType::INST_ORI, InstructionId::INST_ORI, InstructionType::I_FORMAT },
-    { TokenType::INST_SLTIU, InstructionId::INST_SLTIU, InstructionType::I_FORMAT },
-    { TokenType::INST_SLTU, InstructionId::INST_SLTU, InstructionType::R_FORMAT },
-    { TokenType::INST_SLL, InstructionId::INST_SLL, InstructionType::R_FORMAT_SHAMT },
-    { TokenType::INST_SRL, InstructionId::INST_SRL, InstructionType::R_FORMAT_SHAMT },
-    { TokenType::INST_SW, InstructionId::INST_SW, InstructionType::I_FORMAT_OFFSET },
-    { TokenType::INST_SB, InstructionId::INST_SB, InstructionType::I_FORMAT_OFFSET },
-    { TokenType::INST_SUBU, InstructionId::INST_SUBU, InstructionType::R_FORMAT },
+std::vector<std::pair<TokenType, ElementType>> elemDefs
+    = { { TokenType::CONST_DECI, ElementType::TOKEN_CONST },
+        { TokenType::CONST_HEX, ElementType::TOKEN_CONST },
+        { TokenType::REGISTER, ElementType::TOKEN_REGISTER },
+        { TokenType::LABEL, ElementType::TOKEN_LABEL },
+        { TokenType::LABEL_ID, ElementType::TOKEN_LABEL_ID },
+        { TokenType::BRAKET_LEFT, ElementType::TOKEN_BRAKET_LEFT },
+        { TokenType::BRAKET_RIGHT, ElementType::TOKEN_BRAKET_RIGHT },
+        { TokenType::COMMA, ElementType::TOKEN_COMMA },
+        { TokenType::DIRE_DATA, ElementType::TOKEN_DIRE_DATA },
+        { TokenType::DIRE_WORD, ElementType::TOKEN_DIRE_WORD },
+        { TokenType::DIRE_TEXT, ElementType::TOKEN_DIRE_TEXT } };
+std::vector<std::tuple<TokenType, InstructionId, std::vector<InstructionType>>> instDefs = {
+    { TokenType::INST_ADDIU, InstructionId::INST_ADDIU, { InstructionType::I_FORMAT } },
+    { TokenType::INST_ADDU, InstructionId::INST_ADDU, { InstructionType::R_FORMAT } },
+    { TokenType::INST_AND, InstructionId::INST_AND, { InstructionType::R_FORMAT } },
+    { TokenType::INST_ANDI, InstructionId::INST_ANDI, { InstructionType::I_FORMAT } },
+    { TokenType::INST_BEQ,
+      InstructionId::INST_BEQ,
+      { InstructionType::I_FORMAT_OFFSET, InstructionType::I_FORMAT_ADDRESS } },
+    { TokenType::INST_BNE,
+      InstructionId::INST_BNE,
+      { InstructionType::I_FORMAT_OFFSET, InstructionType::I_FORMAT_ADDRESS } },
+    { TokenType::INST_J, InstructionId::INST_J, { InstructionType::J_FORMAT } },
+    { TokenType::INST_JAL, InstructionId::INST_JAL, { InstructionType::J_FORMAT } },
+    { TokenType::INST_JR, InstructionId::INST_JR, { InstructionType::R_FORMAT_JR } },
+    { TokenType::INST_LUI, InstructionId::INST_LUI, { InstructionType::I_FORMAT_LUI } },
+    { TokenType::INST_LW, InstructionId::INST_LW, { InstructionType::I_FORMAT_OFFSET } },
+    { TokenType::INST_LA, InstructionId::INST_LA, { InstructionType::I_FORMAT_LA } },
+    { TokenType::INST_LB, InstructionId::INST_LB, { InstructionType::I_FORMAT_OFFSET } },
+    { TokenType::INST_NOR, InstructionId::INST_NOR, { InstructionType::R_FORMAT } },
+    { TokenType::INST_OR, InstructionId::INST_OR, { InstructionType::R_FORMAT } },
+    { TokenType::INST_ORI, InstructionId::INST_ORI, { InstructionType::I_FORMAT } },
+    { TokenType::INST_SLTIU, InstructionId::INST_SLTIU, { InstructionType::I_FORMAT } },
+    { TokenType::INST_SLTU, InstructionId::INST_SLTU, { InstructionType::R_FORMAT } },
+    { TokenType::INST_SLL, InstructionId::INST_SLL, { InstructionType::R_FORMAT_SHAMT } },
+    { TokenType::INST_SRL, InstructionId::INST_SRL, { InstructionType::R_FORMAT_SHAMT } },
+    { TokenType::INST_SW, InstructionId::INST_SW, { InstructionType::I_FORMAT_OFFSET } },
+    { TokenType::INST_SB, InstructionId::INST_SB, { InstructionType::I_FORMAT_OFFSET } },
+    { TokenType::INST_SUBU, InstructionId::INST_SUBU, { InstructionType::R_FORMAT } },
 };
 
 int main()
 {
     std::string str = R"===(
+       .data
+var:   .word 5
+array: .word 10
+       .word 2
+       .word 3
+       .word 5
+       .text
+main:
        addu    $10,$9,  $0 
        or    $4,  $3,  $2  
        srl    $11,$6,  5  
@@ -86,7 +102,9 @@ int main()
 empty_inst_label:
 sum:    sltiu $1, $2, 1
         bne $1, $0, sum_exit
+        bne $1, 3($1)
         addu $3, $3, $2
+        la $2, 0x12345678
         addiu $2, $2, -1
         j sum
 sum_exit:
@@ -124,33 +142,47 @@ empty_inst_label2:
             elemDef.second,
             ElementDefinitionFactory::CreateTokenElementDefinition(elemDef.first, elemDef.second));
     }
-
     for (auto& instDef : instDefs)
     {
         // token element 중 instruction을 뜻하는 element를 추가
         parser.AddElementDefinition(ElementType::TOKEN_INST_ID,
                                     ElementDefinitionFactory::CreateTokenElementDefinition(
                                         std::get<TokenType>(instDef), ElementType::TOKEN_INST_ID));
+
         // instruction element 추가
-        parser.AddElementDefinition(
-            ElementType::INSTRUCTION,
-            ElementDefinitionFactory::CreateInstructionDefinition(
-                std::get<InstructionId>(instDef), std::get<InstructionType>(instDef)));
+        for (auto& instType : std::get<std::vector<InstructionType>>(instDef))
+        {
+            parser.AddElementDefinition(ElementType::INSTRUCTION,
+                                        ElementDefinitionFactory::CreateInstructionDefinition(
+                                            std::get<InstructionId>(instDef), instType));
+        }
     }
 
     parser.AddElementDefinition(ElementType::OFFSET_ADDRESS,
                                 ElementDefinitionFactory::CreateOffsetAddressDefinition());
     parser.AddElementDefinition(ElementType::ADDRESS,
                                 ElementDefinitionFactory::CreateAddressDefinition());
+    parser.AddElementDefinition(ElementType::DATA,
+                                ElementDefinitionFactory::CreateDataDefinition());
 
-#pragma endregion
+    std::vector<Data>             dataList;
+    std::vector<UnionInstruction> instructions;
+    auto                          iter = tokenizer.begin();
 
-    ReadableSerializer serializer;
-
-    // for (auto iter = tokenizer.begin(); iter != iter.end(); iter++)
-    //{ std::cout << "Type : " << (int)iter->type << "\tValue : " << iter->value << std::endl; }
-
-    for (auto iter = tokenizer.begin(); iter != iter.end();)
+    // data 영역 parse
+    auto direDataOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_DATA, iter);
+    if (direDataOrNull.IsNull()) throw NotImplementedException();
+    for (; iter != iter.end();)
+    {
+        auto direTextOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_TEXT, iter);
+        if (!direTextOrNull.IsNull()) break;
+        auto dataOrNull = parser.GetNextElement(ElementType::DATA, iter);
+        if (dataOrNull.IsNull()) throw NotImplementedException();
+        else
+            dataList.push_back(std::get<Data>(dataOrNull.element));
+    }
+    // text 영역 parse
+    for (; iter != iter.end();)
     {
         auto instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
         if (instructionOrNull.IsNull())
@@ -160,6 +192,16 @@ empty_inst_label2:
             continue;
         }
         auto const& instruction = std::get<UnionInstruction>(instructionOrNull.element);
+        instructions.push_back(instruction);
+    }
+
+#pragma endregion
+
+    ReadableSerializer serializer;
+    for (auto& data : dataList) { 
+        std::cout << serializer.Serialize(data) << std::endl; }
+    for (auto& instruction : instructions)
+    {
         std::cout << serializer.Serialize(instruction) << std::endl;
     }
 
