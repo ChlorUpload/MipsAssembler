@@ -7,6 +7,7 @@
 #include "Token.hh"
 #include "Tokenizer.hh"
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 std::vector<std::pair<TokenType, std::vector<std::string>>> tokenDefs = {
@@ -52,35 +53,38 @@ std::vector<std::pair<TokenType, ElementType>> elemDefs
         { TokenType::DIRE_DATA, ElementType::TOKEN_DIRE_DATA },
         { TokenType::DIRE_WORD, ElementType::TOKEN_DIRE_WORD },
         { TokenType::DIRE_TEXT, ElementType::TOKEN_DIRE_TEXT } };
-std::vector<std::tuple<TokenType, InstructionId, std::vector<InstructionType>>> instDefs = {
-    { TokenType::INST_ADDIU, InstructionId::INST_ADDIU, { InstructionType::I_FORMAT } },
-    { TokenType::INST_ADDU, InstructionId::INST_ADDU, { InstructionType::R_FORMAT } },
-    { TokenType::INST_AND, InstructionId::INST_AND, { InstructionType::R_FORMAT } },
-    { TokenType::INST_ANDI, InstructionId::INST_ANDI, { InstructionType::I_FORMAT } },
-    { TokenType::INST_BEQ,
-      InstructionId::INST_BEQ,
-      { InstructionType::I_FORMAT_OFFSET, InstructionType::I_FORMAT_ADDRESS } },
-    { TokenType::INST_BNE,
-      InstructionId::INST_BNE,
-      { InstructionType::I_FORMAT_OFFSET, InstructionType::I_FORMAT_ADDRESS } },
-    { TokenType::INST_J, InstructionId::INST_J, { InstructionType::J_FORMAT } },
-    { TokenType::INST_JAL, InstructionId::INST_JAL, { InstructionType::J_FORMAT } },
-    { TokenType::INST_JR, InstructionId::INST_JR, { InstructionType::R_FORMAT_JR } },
-    { TokenType::INST_LUI, InstructionId::INST_LUI, { InstructionType::I_FORMAT_LUI } },
-    { TokenType::INST_LW, InstructionId::INST_LW, { InstructionType::I_FORMAT_OFFSET } },
-    { TokenType::INST_LA, InstructionId::INST_LA, { InstructionType::I_FORMAT_LA } },
-    { TokenType::INST_LB, InstructionId::INST_LB, { InstructionType::I_FORMAT_OFFSET } },
-    { TokenType::INST_NOR, InstructionId::INST_NOR, { InstructionType::R_FORMAT } },
-    { TokenType::INST_OR, InstructionId::INST_OR, { InstructionType::R_FORMAT } },
-    { TokenType::INST_ORI, InstructionId::INST_ORI, { InstructionType::I_FORMAT } },
-    { TokenType::INST_SLTIU, InstructionId::INST_SLTIU, { InstructionType::I_FORMAT } },
-    { TokenType::INST_SLTU, InstructionId::INST_SLTU, { InstructionType::R_FORMAT } },
-    { TokenType::INST_SLL, InstructionId::INST_SLL, { InstructionType::R_FORMAT_SHAMT } },
-    { TokenType::INST_SRL, InstructionId::INST_SRL, { InstructionType::R_FORMAT_SHAMT } },
-    { TokenType::INST_SW, InstructionId::INST_SW, { InstructionType::I_FORMAT_OFFSET } },
-    { TokenType::INST_SB, InstructionId::INST_SB, { InstructionType::I_FORMAT_OFFSET } },
-    { TokenType::INST_SUBU, InstructionId::INST_SUBU, { InstructionType::R_FORMAT } },
+std::vector<std::tuple<TokenType, InstructionId, InstructionType>> instDefs = {
+    { TokenType::INST_ADDIU, InstructionId::INST_ADDIU, InstructionType::I_FORMAT },
+    { TokenType::INST_ADDU, InstructionId::INST_ADDU, InstructionType::R_FORMAT },
+    { TokenType::INST_AND, InstructionId::INST_AND, InstructionType::R_FORMAT },
+    { TokenType::INST_ANDI, InstructionId::INST_ANDI, InstructionType::I_FORMAT },
+    { TokenType::INST_BEQ, InstructionId::INST_BEQ, InstructionType::I_FORMAT_ADDRESS },
+    { TokenType::INST_BNE, InstructionId::INST_BNE, InstructionType::I_FORMAT_ADDRESS },
+    { TokenType::INST_J, InstructionId::INST_J, InstructionType::J_FORMAT },
+    { TokenType::INST_JAL, InstructionId::INST_JAL, InstructionType::J_FORMAT },
+    { TokenType::INST_JR, InstructionId::INST_JR, InstructionType::R_FORMAT_JR },
+    { TokenType::INST_LUI, InstructionId::INST_LUI, InstructionType::I_FORMAT_LUI },
+    { TokenType::INST_LW, InstructionId::INST_LW, InstructionType::I_FORMAT_OFFSET },
+    { TokenType::INST_LA, InstructionId::INST_LA, InstructionType::I_FORMAT_LA },
+    { TokenType::INST_LB, InstructionId::INST_LB, InstructionType::I_FORMAT_OFFSET },
+    { TokenType::INST_NOR, InstructionId::INST_NOR, InstructionType::R_FORMAT },
+    { TokenType::INST_OR, InstructionId::INST_OR, InstructionType::R_FORMAT },
+    { TokenType::INST_ORI, InstructionId::INST_ORI, InstructionType::I_FORMAT },
+    { TokenType::INST_SLTIU, InstructionId::INST_SLTIU, InstructionType::I_FORMAT },
+    { TokenType::INST_SLTU, InstructionId::INST_SLTU, InstructionType::R_FORMAT },
+    { TokenType::INST_SLL, InstructionId::INST_SLL, InstructionType::R_FORMAT_SHAMT },
+    { TokenType::INST_SRL, InstructionId::INST_SRL, InstructionType::R_FORMAT_SHAMT },
+    { TokenType::INST_SW, InstructionId::INST_SW, InstructionType::I_FORMAT_OFFSET },
+    { TokenType::INST_SB, InstructionId::INST_SB, InstructionType::I_FORMAT_OFFSET },
+    { TokenType::INST_SUBU, InstructionId::INST_SUBU, InstructionType::R_FORMAT },
 };
+
+std::string _HexToStr(unsigned int hex)
+{
+    std::ostringstream ss;
+    ss << "0x" << std::hex << hex;
+    return ss.str();
+}
 
 int main()
 {
@@ -103,7 +107,6 @@ main:
 empty_inst_label:
 sum:    sltiu $1, $2, 1
         bne $1, $0, sum_exit
-        bne $1, 3($1)
         addu $3, $3, $2
         la $2, array
         addiu $2, $2, -1
@@ -151,12 +154,10 @@ empty_inst_label2:
                                         std::get<TokenType>(instDef), ElementType::TOKEN_INST_ID));
 
         // instruction element 추가
-        for (auto& instType : std::get<std::vector<InstructionType>>(instDef))
-        {
-            parser.AddElementDefinition(ElementType::INSTRUCTION,
-                                        ElementDefinitionFactory::CreateInstructionDefinition(
-                                            std::get<InstructionId>(instDef), instType));
-        }
+        parser.AddElementDefinition(
+            ElementType::INSTRUCTION,
+            ElementDefinitionFactory::CreateInstructionDefinition(
+                std::get<InstructionId>(instDef), std::get<InstructionType>(instDef)));
     }
 
     parser.AddElementDefinition(ElementType::OFFSET_ADDRESS,
@@ -211,7 +212,7 @@ empty_inst_label2:
         address += 4;
     }
     address = 0x00400000;
-    for (auto const& inst : instructions)
+    for (auto& inst : instructions)
     {
         if (inst.label.has_value())
             textLabelMap.insert(std::make_pair(inst.label.value(), address));
@@ -225,7 +226,10 @@ empty_inst_label2:
 
             if ((iter->second & 0xFFFF) != 0) { address += 4; }
         }
+
+        inst.__selfAddress = address;
     }
+    // 레이블 주소 계산, 추상 Instruction 변환, Empty Instruction 제거
     std::vector<UnionInstruction> newInstructions;
     for (auto const& inst : instructions)
     {
@@ -284,11 +288,12 @@ empty_inst_label2:
             newInstructions.push_back(UnionInstruction(inst.id, inst.instType, instJ, inst.label));
             break;
         }
+        case InstructionType::EMPTY: break;
         default: newInstructions.push_back(newInst); break;
         }
     }
 
-    std::cout << std::endl << "주소 분석 및 의미 추론 완료" << std::endl;
+    std::cout << std::endl << "semantic analyzing completed." << std::endl << std::endl;
 
     // 사람이 읽을 수 있는 형태로 의미 분석 결과 표시
     for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
@@ -299,6 +304,13 @@ empty_inst_label2:
 
     // 기계어 생성
     CodeGenerator codegen;
+
+    std::cout << std::endl << "codegen completed." << std::endl << std::endl;
+
+    std::cout << _HexToStr(newInstructions.size() * 4) << std::endl;
+    std::cout << _HexToStr(dataList.size() * 4) << std::endl;
+    for (auto& newInst : newInstructions) { std::cout << codegen.Serialize(newInst) << std::endl; }
+    for (auto& data : dataList) { std::cout << codegen.Serialize(data) << std::endl; }
 
     return 0;
 }
