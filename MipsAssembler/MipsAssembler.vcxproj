@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CodeGenerator.cc" />
     <ClCompile Include="ElementDefinition.cc" />
     <ClCompile Include="MipsAssembler.cc" />
     <ClCompile Include="Parser.cc" />
@@ -152,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Address.hh" />
+    <ClInclude Include="CodeGenrator.hh" />
     <ClInclude Include="Data.hh" />
     <ClInclude Include="Element.hh" />
     <ClInclude Include="ElementDefinition.hh" />
@@ -160,7 +162,6 @@
     <ClInclude Include="NotImplementedException.hh" />
     <ClInclude Include="Parser.hh" />
     <ClInclude Include="ReadableSerializer.hh" />
-    <ClInclude Include="SemanticAnalyzer.hh" />
     <ClInclude Include="Token.hh" />
     <ClInclude Include="TokenDefinition.hh" />
     <ClInclude Include="TokenElement.hh" />

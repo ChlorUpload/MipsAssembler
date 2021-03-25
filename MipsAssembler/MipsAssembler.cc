@@ -1,3 +1,4 @@
+#include "CodeGenrator.hh"
 #include "Element.hh"
 #include "ElementDefinition.hh"
 #include "NotImplementedException.hh"
@@ -174,7 +175,7 @@ empty_inst_label2:
     // data 영역 parse
     auto direDataOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_DATA, iter);
     if (direDataOrNull.IsNull()) throw NotImplementedException();
-    while(iter != iter.end())
+    while (iter != iter.end())
     {
         auto direTextOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_TEXT, iter);
         if (!direTextOrNull.IsNull()) break;
@@ -184,7 +185,7 @@ empty_inst_label2:
             dataList.push_back(std::get<Data>(dataOrNull.element));
     }
     // text 영역 parse
-    while(iter != iter.end())
+    while (iter != iter.end())
     {
         auto instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
         if (instructionOrNull.IsNull())
@@ -197,12 +198,19 @@ empty_inst_label2:
         instructions.push_back(instruction);
     }
 
+    // 사람이 읽을 수 있는 형태로 파싱 결과 표시
     ReadableSerializer serializer;
     for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
     for (auto& instruction : instructions)
     {
         std::cout << serializer.Serialize(instruction) << std::endl;
     }
+
+    // 의미 분석
+    std::unordered_map<std::string, int> labelMap;
+
+    // 기계어 생성
+    CodeGenerator codegen;
 
     return 0;
 }
