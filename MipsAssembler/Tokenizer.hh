@@ -32,7 +32,7 @@ class Tokenizer
         ~TokenIterator();
 
         TokenIterator& operator++();
-        TokenIterator& operator++(int);
+        TokenIterator operator++(int);
         Token const&   operator*() const;
         Token const*   operator->() const;
 

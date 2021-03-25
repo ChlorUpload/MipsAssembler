@@ -1,4 +1,5 @@
 #include "Tokenizer.hh"
+
 #include <sstream>
 #include <stdexcept>
 
@@ -25,8 +26,7 @@ std::vector<std::string> Tokenizer::_split(std::string mips)
 
         if (iter != mips.end())
         {
-            std::string str;
-            std::copy(lastIter, iter, std::back_inserter(str));
+            std::string str(lastIter, iter);
             if (str.size() > 0) vec.push_back(str);
 
             if (_IsPunctuationMark(*iter)) { vec.push_back(std::string(1, *iter)); }
@@ -34,6 +34,9 @@ std::vector<std::string> Tokenizer::_split(std::string mips)
             iter++;
         }
     }
+
+    std::string last(lastIter, iter);
+    if (last.size() > 0 && last.size() > 1 || !_IsDelimeter(last[0])) vec.push_back(last);
 
     return vec;
 }
@@ -45,8 +48,7 @@ std::pair<Token, int> Tokenizer::GenerateToken(int wordInd)
 
     try
     {
-        do
-        {
+        do {
             for (TokenDefinition& definition : _tokenDefinitions)
             {
                 if (_words.size() <= retInd) break;
@@ -127,7 +129,7 @@ Tokenizer::TokenIterator& Tokenizer::TokenIterator::operator++()
     return *this;
 }
 
-Tokenizer::TokenIterator& Tokenizer::TokenIterator::operator++(int)
+Tokenizer::TokenIterator Tokenizer::TokenIterator::operator++(int)
 {
     Tokenizer::TokenIterator temp = *this;
     ++(*this);
