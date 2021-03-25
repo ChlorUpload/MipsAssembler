@@ -246,31 +246,20 @@ end:
     });
 }
 
-ElementDefinition ElementDefinitionFactory::CreateAddressDefinition()
+ElementDefinition ElementDefinitionFactory::CreateLabelAddressDefinition()
 {
     return ElementDefinition([](Tokenizer::TokenIterator& iter, Parser* parser) {
         Tokenizer::TokenIterator copyIter(iter);
         UnionElementType         element = NullElement();
 
-        std::optional<int> res = _RequireConstant(parser, copyIter);
-        if (res.has_value())
+        auto labelIdOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL_ID, copyIter);
+        if (!labelIdOrNull.IsNull())
         {
-            ConstantAddress constantAddress;
-            constantAddress.address = res.value();
-            element                 = UnionAddress(constantAddress);
-            iter                    = copyIter;
-        }
-        else
-        {
-            auto labelIdOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL_ID, copyIter);
-            if (!labelIdOrNull.IsNull())
-            {
-                auto         labelId = std::get<TokenElement>(labelIdOrNull.element).token.value;
-                LabelAddress labelAddress;
-                labelAddress.labelId = labelId;
-                element              = UnionAddress(labelAddress);
-                iter                 = copyIter;
-            }
+            auto         labelId = std::get<TokenElement>(labelIdOrNull.element).token.value;
+            LabelAddress labelAddress;
+            labelAddress.labelId = labelId;
+            element              = UnionAddress(labelAddress);
+            iter                 = copyIter;
         }
 
         return UnionElement(element);
