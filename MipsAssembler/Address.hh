@@ -6,7 +6,7 @@
 
 struct ConstantAddress
 {
-    int address;
+    unsigned int address;
 };
 
 struct LabelAddress
