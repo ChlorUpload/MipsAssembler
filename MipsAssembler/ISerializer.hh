@@ -6,6 +6,7 @@ class ISerializer
 {
   public:
     virtual std::string Serialize(UnionInstruction inst) = 0;
+    virtual std::string Serialize(Data data)             = 0;
 };
 
 #endif
