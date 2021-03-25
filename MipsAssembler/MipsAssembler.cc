@@ -165,6 +165,8 @@ empty_inst_label2:
     parser.AddElementDefinition(ElementType::DATA,
                                 ElementDefinitionFactory::CreateDataDefinition());
 
+#pragma endregion
+
     std::vector<Data>             dataList;
     std::vector<UnionInstruction> instructions;
     auto                          iter = tokenizer.begin();
@@ -172,7 +174,7 @@ empty_inst_label2:
     // data 영역 parse
     auto direDataOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_DATA, iter);
     if (direDataOrNull.IsNull()) throw NotImplementedException();
-    for (; iter != iter.end();)
+    while(iter != iter.end())
     {
         auto direTextOrNull = parser.GetNextElement(ElementType::TOKEN_DIRE_TEXT, iter);
         if (!direTextOrNull.IsNull()) break;
@@ -182,7 +184,7 @@ empty_inst_label2:
             dataList.push_back(std::get<Data>(dataOrNull.element));
     }
     // text 영역 parse
-    for (; iter != iter.end();)
+    while(iter != iter.end())
     {
         auto instructionOrNull = parser.GetNextElement(ElementType::INSTRUCTION, iter);
         if (instructionOrNull.IsNull())
@@ -195,11 +197,8 @@ empty_inst_label2:
         instructions.push_back(instruction);
     }
 
-#pragma endregion
-
     ReadableSerializer serializer;
-    for (auto& data : dataList) { 
-        std::cout << serializer.Serialize(data) << std::endl; }
+    for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
     for (auto& instruction : instructions)
     {
         std::cout << serializer.Serialize(instruction) << std::endl;
