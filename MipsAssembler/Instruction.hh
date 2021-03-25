@@ -134,6 +134,7 @@ struct UnionInstruction : public Element
     InstructionId              id;
     InstructionType            instType;
     std::optional<std::string> label;
+    unsigned int               __selfAddress;
     virtual ElementType        getType()
     {
         return ElementType::INSTRUCTION;
@@ -143,12 +144,14 @@ struct UnionInstruction : public Element
     UnionInstruction(InstructionId              id,
                      InstructionType            instType,
                      UnionInstructionType       instruction,
-                     std::optional<std::string> label = std::nullopt) :
+                     std::optional<std::string> label         = std::nullopt,
+                     unsigned int               __selfAddress = 0) :
         Element { ElementType::INSTRUCTION },
         id { id },
         instType { instType },
         instruction { instruction },
-        label { label }
+        label { label },
+        __selfAddress { __selfAddress }
     {}
 };
 
