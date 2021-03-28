@@ -33,9 +33,7 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
 
         auto labelOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL, copyIter);
         if (!labelOrNull.IsNull())
-        {
-            label = std::get<TokenElement>(labelOrNull.element).token.value;
-        }
+        { label = std::get<TokenElement>(labelOrNull.element).token.value; }
 
         auto instOrNull = parser->GetNextElement(ElementType::TOKEN_INST_ID, copyIter);
         if (!instOrNull.IsNull())
@@ -47,8 +45,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 {
                 case InstructionType::R_FORMAT:
                 {
-                    InstructionR       instR;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionR                instR;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instR.rd = res.value();
                     else
                         break;
@@ -69,8 +67,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::R_FORMAT_SHAMT:
                 {
-                    InstructionRShamt  instRShamt;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionRShamt           instRShamt;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instRShamt.rd = res.value();
                     else
                         break;
@@ -91,8 +89,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::R_FORMAT_JR:
                 {
-                    InstructionRJr     instRJr;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionRJr              instRJr;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instRJr.rs = res.value();
                     else
                         break;
@@ -103,8 +101,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::I_FORMAT:
                 {
-                    InstructionI       instI;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionI                instI;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instI.rt = res.value();
                     else
                         break;
@@ -125,8 +123,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::I_FORMAT_OFFSET:
                 {
-                    InstructionIOffset instIOffset;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionIOffset          instIOffset;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instIOffset.rt = res.value();
                     else
                         break;
@@ -145,8 +143,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::I_FORMAT_ADDRESS:
                 {
-                    int                rt, rs;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    unsigned int                rt, rs;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) rt = res.value();
                     else
                         break;
@@ -167,8 +165,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::I_FORMAT_LUI:
                 {
-                    InstructionILui    instILui;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    InstructionILui             instILui;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) instILui.rt = res.value();
                     else
                         break;
@@ -184,8 +182,8 @@ ElementDefinition ElementDefinitionFactory::CreateInstructionDefinition(Instruct
                 }
                 case InstructionType::I_FORMAT_LA:
                 {
-                    int                rt;
-                    std::optional<int> res = _RequireRegister(parser, copyIter);
+                    unsigned int                rt;
+                    std::optional<unsigned int> res = _RequireRegister(parser, copyIter);
                     if (res.has_value()) rt = res.value();
                     else
                         break;
@@ -227,8 +225,8 @@ ElementDefinition ElementDefinitionFactory::CreateOffsetAddressDefinition()
         Tokenizer::TokenIterator copyIter(iter);
         UnionElementType         element = NullElement();
 
-        int                offset, numRegister;
-        std::optional<int> res = _RequireConstant(parser, copyIter);
+        unsigned int                offset, numRegister;
+        std::optional<unsigned int> res = _RequireConstant(parser, copyIter);
         if (res.has_value()) { offset = res.value(); }
         else
             goto end;
@@ -275,13 +273,11 @@ ElementDefinition ElementDefinitionFactory::CreateDataDefinition()
 
         auto labelOrNull = parser->GetNextElement(ElementType::TOKEN_LABEL, copyIter);
         if (!labelOrNull.IsNull())
-        {
-            label = std::get<TokenElement>(labelOrNull.element).token.value;
-        }
+        { label = std::get<TokenElement>(labelOrNull.element).token.value; }
 
         if (_Require(ElementType::TOKEN_DIRE_WORD, parser, copyIter))
         {
-            std::optional<int> res = _RequireConstant(parser, copyIter);
+            std::optional<unsigned int> res = _RequireConstant(parser, copyIter);
             if (res.has_value())
             {
                 element = Data(res.value(), label);
@@ -301,13 +297,15 @@ InstructionId ElementDefinitionFactory::_TokenTypeToInstructionId(Token token)
         throw NotImplementedException();
 }
 
-int ElementDefinitionFactory::_Atoi(std::string str)
+unsigned int ElementDefinitionFactory::_Atoi(std::string str)
 {
     try
     {
-        int                n;
+        unsigned int       n;
         std::istringstream ss(str);
-        ss >> n;
+        if (str.size() > 2 && str[0] == '0' && str[1] == 'x' || str[1] == 'X') ss >> std::hex >> n;
+        else
+            ss >> n;
 
         return n;
     }
@@ -325,28 +323,24 @@ bool ElementDefinitionFactory::_Require(ElementType               type,
     return !elementOrNull.IsNull();
 }
 
-std::optional<int> ElementDefinitionFactory::_RequireConstant(Parser*                   parser,
-                                                              Tokenizer::TokenIterator& iter)
+std::optional<unsigned int>
+ElementDefinitionFactory::_RequireConstant(Parser* parser, Tokenizer::TokenIterator& iter)
 {
     auto constantOrNull = parser->GetNextElement(ElementType::TOKEN_CONST, iter);
     if (!constantOrNull.IsNull())
-    {
-        return _Atoi(std::get<TokenElement>(constantOrNull.element).token.value);
-    }
+    { return _Atoi(std::get<TokenElement>(constantOrNull.element).token.value); }
     else
     {
         return std::nullopt;
     }
 }
 
-std::optional<int> ElementDefinitionFactory::_RequireRegister(Parser*                   parser,
-                                                              Tokenizer::TokenIterator& iter)
+std::optional<unsigned int>
+ElementDefinitionFactory::_RequireRegister(Parser* parser, Tokenizer::TokenIterator& iter)
 {
     auto registerOrNull = parser->GetNextElement(ElementType::TOKEN_REGISTER, iter);
     if (!registerOrNull.IsNull())
-    {
-        return _Atoi(std::get<TokenElement>(registerOrNull.element).token.value);
-    }
+    { return _Atoi(std::get<TokenElement>(registerOrNull.element).token.value); }
     else
     {
         return std::nullopt;
