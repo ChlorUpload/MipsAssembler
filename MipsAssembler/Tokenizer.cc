@@ -18,7 +18,7 @@ std::vector<std::string> Tokenizer::_split(std::string mips)
     std::vector<std::string> vec;
 
     std::string::iterator lastIter = mips.begin(), iter = mips.begin();
-    while (iter != mips.end())
+    while (true)
     {
         lastIter = iter;
         iter     = std::find_if(
@@ -33,10 +33,9 @@ std::vector<std::string> Tokenizer::_split(std::string mips)
 
             iter++;
         }
+        else
+            break;
     }
-
-    std::string last(lastIter, iter);
-    if (last.size() > 0 && last.size() > 1 || !_IsDelimeter(last[0])) vec.push_back(last);
 
     return vec;
 }

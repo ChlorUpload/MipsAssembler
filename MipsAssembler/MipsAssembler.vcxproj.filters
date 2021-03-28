@@ -39,9 +39,6 @@
     <ClCompile Include="MipsAssembler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TokenDefinitions.cc">
-      <Filter>Source Files\Token</Filter>
-    </ClCompile>
     <ClCompile Include="Tokenizer.cc">
       <Filter>Source Files\Token</Filter>
     </ClCompile>
@@ -56,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="CodeGenerator.cc">
       <Filter>Source Files\Serializer</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenDefinition.cc">
+      <Filter>Source Files\Token</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,7 +101,7 @@
     <ClInclude Include="Data.hh">
       <Filter>Header Files\Parse\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="CodeGenrator.hh">
+    <ClInclude Include="CodeGenerator.hh">
       <Filter>Header Files\Serializer</Filter>
     </ClInclude>
   </ItemGroup>

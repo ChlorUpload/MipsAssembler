@@ -148,12 +148,12 @@
     <ClCompile Include="MipsAssembler.cc" />
     <ClCompile Include="Parser.cc" />
     <ClCompile Include="ReadableSerializer.cc" />
-    <ClCompile Include="TokenDefinitions.cc" />
+    <ClCompile Include="TokenDefinition.cc" />
     <ClCompile Include="Tokenizer.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Address.hh" />
-    <ClInclude Include="CodeGenrator.hh" />
+    <ClInclude Include="CodeGenerator.hh" />
     <ClInclude Include="Data.hh" />
     <ClInclude Include="Element.hh" />
     <ClInclude Include="ElementDefinition.hh" />

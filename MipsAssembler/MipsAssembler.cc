@@ -1,4 +1,4 @@
-#include "CodeGenrator.hh"
+#include "CodeGenerator.hh"
 #include "Element.hh"
 #include "ElementDefinition.hh"
 #include "NotImplementedException.hh"
@@ -6,6 +6,7 @@
 #include "ReadableSerializer.hh"
 #include "Token.hh"
 #include "Tokenizer.hh"
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -86,39 +87,38 @@ std::string _HexToStr(unsigned int hex)
     return ss.str();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     std::string str = R"===(
-       .data
-var:   .word 5
-array: .word 10
-       .word 2
-       .word 3
-       .word 5
-       .text
+      .data
+var:  .word   5
+        .text
 main:
-       addu    $10,$9,  $0 
-       or    $4,  $3,  $2  
-       srl    $11,$6,  5  
-       lw $9, 0($8)
-       addu $2, $0, $9
-       jal sum
-       j exit
-empty_inst_label:
-sum:    sltiu $1, $2, 1
-        bne $1, $0, sum_exit
-        addu $3, $3, $2
-        la $2, array
-        addiu $2, $2, -1
-        j sum
-sum_exit:
-        addu $4, $3, $0
-        jr $31
-exit:
-        addu $10, $9, $0      
-empty_inst_label2:
+    la $8, var
+    lw $9, 0($8)
+    addu $2, $0, $9
+    jal sum
+    j exit
 
+sum: sltiu $1, $2, 1
+    bne $1, $0, sum_exit
+    addu $3, $3, $2
+    addiu $2, $2, -1
+    j sum
+sum_exit:
+    addu $4, $3, $0
+    jr $31
+exit:
 )===";
+
+    if (argc == 2)
+    {
+        std::ifstream     file(argv[1]);
+        std::stringstream ss;
+
+        ss << file.rdbuf();
+        str = ss.str();
+    }
 
 #pragma region Tokenizer
 
@@ -198,9 +198,7 @@ empty_inst_label2:
     ReadableSerializer serializer;
     for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
     for (auto& instruction : instructions)
-    {
-        std::cout << serializer.Serialize(instruction) << std::endl;
-    }
+    { std::cout << serializer.Serialize(instruction) << std::endl; }
 
     // 의미 분석
     std::unordered_map<std::string, unsigned int> dataLabelMap, textLabelMap;
@@ -214,6 +212,8 @@ empty_inst_label2:
     address = 0x00400000;
     for (auto& inst : instructions)
     {
+        inst.__selfAddress = address;
+
         if (inst.label.has_value())
             textLabelMap.insert(std::make_pair(inst.label.value(), address));
         if (inst.id != InstructionId::INST_EMPTY) address += 4;
@@ -226,8 +226,6 @@ empty_inst_label2:
 
             if ((iter->second & 0xFFFF) != 0) { address += 4; }
         }
-
-        inst.__selfAddress = address;
     }
     // 레이블 주소 계산, 추상 Instruction 변환, Empty Instruction 제거
     std::vector<UnionInstruction> newInstructions;
@@ -249,8 +247,11 @@ empty_inst_label2:
             ConstantAddress ca;
             ca.address          = iter->second;
             instAddress.address = UnionAddress(ca);
-            newInst             = UnionInstruction(
-                inst.id, inst.instType, InstructionIAddress(instAddress), inst.label);
+            newInst             = UnionInstruction(inst.id,
+                                       inst.instType,
+                                       InstructionIAddress(instAddress),
+                                       inst.label,
+                                       inst.__selfAddress);
             newInstructions.push_back(newInst);
             break;
         }
@@ -264,15 +265,21 @@ empty_inst_label2:
             InstructionILui instILui;
             instILui.rt        = instLa.rt;
             instILui.immediate = addressHi;
-            newInstructions.push_back(UnionInstruction(
-                InstructionId::INST_LUI, InstructionType::I_FORMAT_LUI, instILui, inst.label));
+            newInstructions.push_back(UnionInstruction(InstructionId::INST_LUI,
+                                                       InstructionType::I_FORMAT_LUI,
+                                                       instILui,
+                                                       inst.label,
+                                                       inst.__selfAddress));
             if ((iter->second & 0xFFFF) != 0)
             {
                 InstructionI instIOri;
                 instIOri.rt = instIOri.rs = instLa.rt;
                 instIOri.immediate        = iter->second & 0xFFFF;
-                newInstructions.push_back(
-                    UnionInstruction(InstructionId::INST_ORI, InstructionType::I_FORMAT, instIOri));
+                newInstructions.push_back(UnionInstruction(InstructionId::INST_ORI,
+                                                           InstructionType::I_FORMAT,
+                                                           instIOri,
+                                                           std::nullopt,
+                                                           inst.__selfAddress + 4));
             }
             break;
         }
@@ -285,7 +292,8 @@ empty_inst_label2:
             ConstantAddress ca;
             ca.address   = iter->second;
             instJ.target = UnionAddress(ca);
-            newInstructions.push_back(UnionInstruction(inst.id, inst.instType, instJ, inst.label));
+            newInstructions.push_back(
+                UnionInstruction(inst.id, inst.instType, instJ, inst.label, inst.__selfAddress));
             break;
         }
         case InstructionType::EMPTY: break;
@@ -298,9 +306,7 @@ empty_inst_label2:
     // 사람이 읽을 수 있는 형태로 의미 분석 결과 표시
     for (auto& data : dataList) { std::cout << serializer.Serialize(data) << std::endl; }
     for (auto& newInst : newInstructions)
-    {
-        std::cout << serializer.Serialize(newInst) << std::endl;
-    }
+    { std::cout << serializer.Serialize(newInst) << std::endl; }
 
     // 기계어 생성
     CodeGenerator codegen;
@@ -311,6 +317,18 @@ empty_inst_label2:
     std::cout << _HexToStr(dataList.size() * 4) << std::endl;
     for (auto& newInst : newInstructions) { std::cout << codegen.Serialize(newInst) << std::endl; }
     for (auto& data : dataList) { std::cout << codegen.Serialize(data) << std::endl; }
+
+    if (argc == 2)
+    {
+        std::string argv1     = argv[1];
+        std::string   filename = argv1.substr(0, argv1.size() - 1) + "o";
+        std::ofstream os(filename);
+
+        os << _HexToStr(newInstructions.size() * 4) << std::endl;
+        os << _HexToStr(dataList.size() * 4) << std::endl;
+        for (auto& newInst : newInstructions) { os << codegen.Serialize(newInst) << std::endl; }
+        for (auto& data : dataList) { os << codegen.Serialize(data) << std::endl; }
+    }
 
     return 0;
 }
