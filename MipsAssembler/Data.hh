@@ -4,13 +4,13 @@
 
 struct Data : public Element
 {
-    int                        value;
+    unsigned int               value;
     std::optional<std::string> label;
     virtual ElementType        getType()
     {
         return ElementType::DATA;
     }
-    Data(int value, std::optional<std::string> label = std::nullopt) :
+    Data(unsigned int value, std::optional<std::string> label = std::nullopt) :
         Element(ElementType::DATA),
         label { label },
         value { value }
