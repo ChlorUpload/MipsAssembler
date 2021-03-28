@@ -1,4 +1,4 @@
-#include "CodeGenrator.hh"
+#include "CodeGenerator.hh"
 #include "NotImplementedException.hh"
 #include <sstream>
 #include <unordered_map>
@@ -57,7 +57,7 @@ std::string CodeGenerator::Serialize(InstructionRShamt instRshamt, UnionInstruct
 }
 std::string CodeGenerator::Serialize(InstructionRJr instRJr, UnionInstruction inst)
 {
-    return _HexToStr(_MakeRInstruction(0, instRJr.rs, 0, 0, 0x08));
+    return _HexToStr(_MakeRInstruction(instRJr.rs, 0, 0, 0, 0x08));
 }
 std::string CodeGenerator::Serialize(InstructionI instI, UnionInstruction inst)
 {
@@ -105,7 +105,7 @@ std::string CodeGenerator::Serialize(InstructionIAddress instIAddress, UnionInst
     auto const& iter = opMap.find(inst.id);
     if (iter == opMap.end()) throw NotImplementedException();
     unsigned int address = std::get<ConstantAddress>(instIAddress.address.element).address;
-    int          offset  = (address - inst.__selfAddress) >> 2;
+    int          offset  = (address - inst.__selfAddress - 4) >> 2;
 
     return _HexToStr(_MakeIInstruction(iter->second, instIAddress.rs, instIAddress.rt, offset));
 }
@@ -165,9 +165,10 @@ unsigned int CodeGenerator::_MakeIInstruction(unsigned int op,
     return ret;
 }
 
-unsigned int CodeGenerator::_MakeJInstruction(unsigned int op, unsigned int target)
+unsigned int CodeGenerator::_MakeJInstruction(unsigned int op, unsigned int address)
 {
     unsigned int ret = op;
+    unsigned int target = address >> 2;
     ret <<= 26;
     ret |= target;
     return ret;
