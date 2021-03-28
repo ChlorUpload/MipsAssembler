@@ -1,4 +1,5 @@
 #include "TokenDefinition.hh"
+
 #include <algorithm>
 #include <sstream>
 
@@ -66,7 +67,18 @@ Token TokenDefinitionFactory::LabelTokenDefinition(std::string const& word)
 Token TokenDefinitionFactory::ConstantTokenDefinition(std::string const& word)
 {
     if (word.empty()) return Token::CreateNullToken();
-    if (word[0] == '-' || std::isdigit(word[0]))
+    if (word.size() > 2 && word[0] == '0' && word[1] == 'x' || word[1] == 'X')
+    {
+        auto it = std::find_if_not(word.begin() + 2, word.end(), [](char c) {
+            return std::isdigit(c) && ('A' <= std::toupper(c) && std::toupper(c) <= 'F');
+        });
+        if (it == word.end()) { return Token::CreateNullToken(); }
+        else
+        {
+            return Token::CreateToken(TokenType::CONST_HEX, word);
+        }
+    }
+    else if (word[0] == '-' || std::isdigit(word[0]))
     {
         if (word[0] == '-' && word.size() == 1) return Token::CreateNullToken();
         auto it = std::find_if_not(
@@ -77,18 +89,6 @@ Token TokenDefinitionFactory::ConstantTokenDefinition(std::string const& word)
             return Token::CreateToken(TokenType::CONST_DECI, word);
         }
     }
-    else if (word.size() > 2 && word[0] == '0' && word[1] == 'x')
-    {
-        auto it = std::find_if_not(word.begin() + 2, word.end(), [](char c) {
-            return std::isdigit(c) && ('A' <= std::toupper(c) && std::toupper(c) <= 'F');
-        });
-        if (it != word.end()) { return Token::CreateNullToken(); }
-        else
-        {
-            return Token::CreateToken(TokenType::CONST_HEX, word);
-        }
-    }
-
     return Token::CreateNullToken();
 }
 
@@ -100,13 +100,17 @@ Token TokenDefinitionFactory::LabelIdTokenDefinition(std::string const& word)
 
 bool TokenDefinitionFactory::_IsValidId(std::string id)
 {
+    bool first = true;
     for (auto c : id)
     {
-        if ('A' <= c && c <= 'z') { continue; }
-        else if ('0' <= c && c <= '9')
+        if ('0' <= c && c <= '9')
         {
+            if (first) return false;
             continue;
         }
+        first = false;
+
+        if ('A' <= c && c <= 'z') { continue; }
         else if (c == '_')
         {
             continue;
