@@ -37,6 +37,9 @@ std::vector<std::string> Tokenizer::_split(std::string mips)
             break;
     }
 
+    std::string last(lastIter, iter);
+    if (last.size() > 0 && last.size() > 1 || !_IsDelimeter(last[0])) vec.push_back(last);
+
     return vec;
 }
 
@@ -47,7 +50,8 @@ std::pair<Token, int> Tokenizer::GenerateToken(int wordInd)
 
     try
     {
-        do {
+        do
+        {
             for (TokenDefinition& definition : _tokenDefinitions)
             {
                 if (_words.size() <= retInd) break;
